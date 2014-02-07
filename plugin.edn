@@ -1,0 +1,6 @@
+{:name "plugins_inc"
+ :version "0.0.1"
+ :author ""
+ :source ""
+ :desc ""
+ :behaviors "plugins_inc.behaviors"}
