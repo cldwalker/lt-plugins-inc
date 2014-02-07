@@ -1,6 +1,6 @@
 ## Description
 This project improves on Light Table's default plugins manager. It provides one command
-to save plugins to a file and another to install plugins from that file.
+to save plugins to a file and another to install/update plugins from that file.
 
 ## Usage
 
