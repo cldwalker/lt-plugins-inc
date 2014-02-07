@@ -9,6 +9,8 @@ Save your plugins with the command `plugins-inc: Save plugins...`.
 Your plugins will be saved to `plugins.edn` in your settings folder. On a mac,
 this file will be at `/Users/$USER/Library/Application Support/LightTable/settings/plugins.edn`
 
+[Example plugins.edn](https://github.com/cldwalker/dotfiles/blob/master/.light_table/plugins.edn)
+
 After editing your plugins.edn or if using LT from a new machine, install
 all your plugins with the command `plugins-inc: Update plugins...`.
 
