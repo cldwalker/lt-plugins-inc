@@ -6,10 +6,11 @@
             [lt.objs.notifos :as notifos]
             [lt.objs.console :as console]
             [lt.objs.deploy :as deploy]
-            [lt.objs.command :as cmd])
+            [lt.objs.command :as cmd]
+            [clojure.string :as string])
   (:require-macros [lt.macros :refer [defui behavior]]))
 
-(def plugins-file (files/join plugins/user-plugins-dir "plugins.edn"))
+(def plugins-file (files/join (files/lt-user-dir "settings") "plugins.edn"))
 
 (defn validate-plugins [plugins]
   (if (every? #(every? % #{:name :version :source}) plugins)
@@ -43,13 +44,15 @@
               :exec update-plugins})
 
 (defn save-plugins []
-  (files/save plugins-file
-              (->> @app/app
-                   :lt.objs.plugins/plugins
-                   vals
-                   (map #(select-keys % [:name :version :source]))
-                   vec
-                   pr-str))
+  (let [plugins-str (->> @app/app
+                         :lt.objs.plugins/plugins
+                         vals
+                         (map #(select-keys % [:name :version :source]))
+                         vec
+                         pr-str)]
+    ;; one plugin per line for easier editing and diffing
+    (files/save plugins-file
+                (string/replace plugins-str #"\}\s*\{" "}\n {")))
   (notifos/set-msg! "Plugins saved to plugins.edn."))
 
 (cmd/command {:command ::save-plugins
@@ -58,5 +61,4 @@
 
 (comment
   (update-plugins)
-  (plugins/discover-deps {:name "GBlame" :version "0.0.5"} (fn [] (.log js/console "DONE")))
-  )
+  (save-plugins))
