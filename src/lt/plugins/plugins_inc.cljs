@@ -1,51 +1,62 @@
 (ns lt.plugins.plugins-inc
-  (:require [lt.object :as object]
-            [lt.objs.tabs :as tabs]
-            [lt.objs.app :as app]
+  (:require [lt.objs.app :as app]
             [lt.objs.plugins :as plugins]
             [lt.objs.files :as files]
+            [lt.objs.settings :as settings]
             [lt.objs.notifos :as notifos]
+            [lt.objs.console :as console]
+            [lt.objs.deploy :as deploy]
             [lt.objs.command :as cmd])
   (:require-macros [lt.macros :refer [defui behavior]]))
 
-(defui hello-panel [this]
-  [:div[:h1 "Hello from plugins-inc"]
-   [:p (-> @app/appl :lt.objs.plugins/plugins vals vec pr-str)]])
+(def plugins-file (files/join plugins/user-plugins-dir "plugins.edn"))
 
-(object/object* ::plugins-inc.hello
-                :tags [:plugins-inc.hello]
-                :name "plugins-inc"
-                :init (fn [this]
-                        (hello-panel this)))
+(defn validate-plugins [plugins]
+  (if (every? #(every? % #{:name :version :source}) plugins)
+    plugins
+    (console/error "plugins.edn is invalid. All plugins must have :name, :version and :source")))
 
-(behavior ::on-close-destroy
-          :triggers #{:close}
-          :reaction (fn [this]
-                      (when-let [ts (:lt.objs.tabs/tabset @this)]
-                        (when (= (count (:objs @ts)) 1)
-                          (tabs/rem-tabset ts)))
-                      (object/raise this :destroy)))
+(defn read-plugins [file]
+  (-> (files/open-sync file)
+      :content
+      ;; TODO: error message specific to plugins.edn
+      (settings/safe-read file)
+      validate-plugins))
 
-(def hello (object/create ::plugins-inc.hello))
+(defn update-plugins []
+  (let [existing-plugins (:lt.objs.plugins/plugins @app/app)
+        outdated-plugins (filter
+                          #(if-let [old-version (get-in existing-plugins [(:name %) :version])]
+                             (deploy/is-newer? old-version (:version %))
+                             true)
+                          (read-plugins plugins-file))]
 
-(cmd/command {:command ::say-hello
-              :desc "plugins-inc: Say Hello"
-              :exec (fn []
-                      (tabs/add-or-focus! hello))})
+    (if (empty? outdated-plugins)
+      (notifos/set-msg! "No plugins to update.")
+      (do
+        (doseq [p outdated-plugins]
+          (plugins/discover-deps p))
+        (notifos/set-msg! "Plugins have been updated.")))))
+
+(cmd/command {:command ::update-plugins
+              :desc "plugins-inc: Update plugins from plugins.edn"
+              :exec update-plugins})
+
+(defn save-plugins []
+  (files/save plugins-file
+              (->> @app/app
+                   :lt.objs.plugins/plugins
+                   vals
+                   (map #(select-keys % [:name :version :source]))
+                   vec
+                   pr-str))
+  (notifos/set-msg! "Plugins saved to plugins.edn."))
 
 (cmd/command {:command ::save-plugins
-              :desc "plugins-inc: Save Plugins"
-              :exec (fn []
-                      (files/save (files/join plugins/user-plugins-dir "plugins.edn")
-                                  (->> @app/app
-                                       :lt.objs.plugins/plugins
-                                       vals
-                                       (map #(select-keys % [:name :version :source]))
-                                       vec
-                                       pr-str))
-                      (notifos/working "Plugins saved to plugins.edn."))})
+              :desc "plugins-inc: Save plugins to plugins.edn"
+              :exec save-plugins})
 
 (comment
-  (prn plugins/user-plugins-dir)
+  (update-plugins)
   (plugins/discover-deps {:name "GBlame" :version "0.0.5"} (fn [] (.log js/console "DONE")))
   )
