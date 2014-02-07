@@ -1,6 +1,6 @@
 {:name "plugins_inc"
- :version "0.0.1"
- :author ""
- :source ""
- :desc ""
+ :version "0.1.0"
+ :author "Gabriel Horner"
+ :source "https://github.com/cldwalker/lt-plugins-inc"
+ :desc "Improving on the default plugins manager."
  :behaviors "plugins_inc.behaviors"}
