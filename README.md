@@ -2,6 +2,14 @@
 This project improves on Light Table's default plugins manager. It provides one command
 to save plugins to a file and another to install/update plugins from that file.
 
+## Install
+
+Clone this project to your plugins directory. On a mac:
+
+```
+$ git clone https://github.com/cldwalker/lt-plugins-inc /Users/$USER/Library/Application\ Support/LightTable/plugins
+```
+
 ## Usage
 
 Save your plugins with the command `plugins-inc: Save plugins...`.
