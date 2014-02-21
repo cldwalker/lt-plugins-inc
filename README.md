@@ -2,6 +2,9 @@
 This project improves on Light Table's default plugins manager. It provides one command
 to save plugins to a file and another to install/update plugins from that file.
 
+*UPDATE* This plugin is not being developed on. Chris pointed out this approach is overkill as you can use
+[your plugins in a plugin's :dependencies](https://groups.google.com/forum/?fromgroups=#!topic/light-table-discussion/zFHDo7_1kDI).
+
 ## Install
 
 Clone this project to your plugins directory. On a mac:
